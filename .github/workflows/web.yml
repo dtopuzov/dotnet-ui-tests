@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - ".github/workflows/web.yml"
+      - "web/**"
+
+jobs:
+  web-playwright:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./web
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build BlazorApp
+        run: dotnet build
+
+      - name: Run BlazorApp
+        run: dotnet run --project BlazorApp/BlazorApp.csproj &
+
+      - name: Setup Plawright
+        run: ./BlazorApp.Tests.Playwright/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run Tests
+        run: dotnet test BlazorApp.Tests.Playwright
+
+  web-selenium:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./web
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build BlazorApp
+        run: dotnet build
+
+      - name: Run BlazorApp
+        run: dotnet run --project BlazorApp/BlazorApp.csproj &
+
+      - name: Run Tests
+        run: dotnet test BlazorApp.Tests.Selenium
